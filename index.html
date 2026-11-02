@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#FFF6EC">
+<meta name="description" content="เว็บสุ่มเมนูอาหาร วันนี้กินอะไรดี — สุ่มจากอาหารตามสั่ง เมนูเส้น อาหารอีสาน อาหารสุขภาพ และของกินเล่น">
+<title>สุ่มเมนูอาหาร 🍽️ วันนี้กินอะไรดี</title>
+<!-- ฟอนต์ไทย Noto Sans Thai (ถ้าออฟไลน์ จะใช้ฟอนต์ในเครื่องแทนอัตโนมัติ) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFF6EC;
+    --card:#FFFFFF;
+    --ink:#2B2118;
+    --muted:#8A7A6D;
+    --line:#F0E4D7;
+    --accent:#E8590C;
+    --accent-dark:#C44A08;
+    --radius:20px;
+    --shadow:0 10px 30px rgba(120,72,20,.10);
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    font-family:'Noto Sans Thai','Sarabun',system-ui,-apple-system,'Segoe UI',sans-serif;
+    background:linear-gradient(180deg,#FFF6EC 0%,#FDEFDD 100%);
+    color:var(--ink);
+    line-height:1.65;            /* บรรทัดห่างเหมาะกับภาษาไทย อ่านง่าย */
+    min-height:100vh;
+  }
+  .app{ max-width:520px; margin:0 auto; padding:20px 16px calc(28px + env(safe-area-inset-bottom)); }
+
+  /* ---------- ส่วนหัว ---------- */
+  header{ text-align:center; padding:8px 0 4px; }
+  .logo{ font-size:44px; line-height:1.2; }
+  h1{ font-size:26px; font-weight:700; letter-spacing:.2px; }
+  .subtitle{ color:var(--muted); font-size:15px; margin-top:2px; }
+
+  /* ---------- ชิปเลือกประเภท ---------- */
+  .section-label{ font-size:14px; font-weight:500; color:var(--muted); margin:20px 0 8px 2px; }
+  .chips{
+    display:flex; gap:8px; overflow-x:auto; padding:2px 2px 8px;
+    -webkit-overflow-scrolling:touch; scrollbar-width:thin;
+  }
+  .chips::-webkit-scrollbar{ height:4px; }
+  .chips::-webkit-scrollbar-thumb{ background:var(--line); border-radius:4px; }
+  .chip{
+    flex:0 0 auto; display:inline-flex; align-items:center; gap:6px;
+    min-height:44px; padding:8px 16px;              /* แตะง่ายบนมือถือ */
+    background:var(--card); color:var(--ink);
+    border:1.5px solid var(--line); border-radius:999px;
+    font-family:inherit; font-size:15px; font-weight:500;
+    cursor:pointer; transition:transform .12s ease, background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .chip:active{ transform:scale(.95); }
+  .chip[aria-selected="true"]{
+    background:var(--accent); border-color:var(--accent); color:#fff;
+    box-shadow:0 4px 12px rgba(232,89,12,.35);
+  }
+  .chip:focus-visible, button:focus-visible{ outline:3px solid #FFB86B; outline-offset:2px; }
+
+  /* ---------- การ์ดผลลัพธ์ ---------- */
+  .card{
+    background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow);
+    overflow:hidden; margin-top:6px;
+  }
+  .img-box{ position:relative; width:100%; aspect-ratio:4/3; background:#FBEFE2; }
+  .img-box img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .emoji-fallback{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:96px; background:linear-gradient(135deg,#FFE8CC,#FFD4A8);
+  }
+  .card.spinning .img-box img{ animation:pulse .5s ease infinite; }
+  @keyframes pulse{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.04); } }
+
+  .card-body{ padding:18px 20px 22px; }
+  .badge{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:13px; font-weight:700; letter-spacing:.3px;
+    padding:4px 12px; border-radius:999px; margin-bottom:10px;
+  }
+  .dish-name{ font-size:clamp(22px,6vw,28px); font-weight:700; line-height:1.35; }
+  .desc{ color:var(--muted); font-size:15.5px; margin-top:6px; min-height:26px; }
+
+  /* ---------- ปุ่ม ---------- */
+  .buttons{ display:grid; grid-template-columns:1fr; gap:10px; margin-top:16px; }
+  .buttons.both{ grid-template-columns:1fr 1fr; }
+  .btn{
+    min-height:56px; border:none; border-radius:16px;
+    font-family:inherit; font-size:17px; font-weight:700;
+    cursor:pointer; transition:transform .12s ease, box-shadow .15s ease, opacity .15s ease;
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn:active{ transform:scale(.96); }
+  .btn:disabled{ opacity:.55; cursor:not-allowed; }
+  .btn-primary{
+    background:linear-gradient(135deg,var(--accent) 0%,var(--accent-dark) 100%);
+    color:#fff; box-shadow:0 8px 20px rgba(232,89,12,.35);
+  }
+  .btn-secondary{
+    background:#fff; color:var(--accent-dark); border:2px solid #FFD8B8;
+  }
+  .btn-secondary:hover{ background:#FFF3E6; }
+  .hidden{ display:none !important; }
+  .pop-in{ animation:pop .35s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes pop{ from{ transform:scale(.6); opacity:0; } to{ transform:scale(1); opacity:1; } }
+
+  /* ---------- ประวัติ ---------- */
+  .history{ margin-top:26px; }
+  .history h2{ font-size:16px; font-weight:700; margin-bottom:10px; }
+  .history-list{ display:flex; flex-wrap:wrap; gap:8px; }
+  .history-item{
+    display:inline-flex; align-items:center; gap:6px;
+    background:#fff; border:1.5px solid var(--line); border-radius:999px;
+    padding:6px 12px; font-size:14px; font-family:inherit; color:var(--ink);
+    cursor:pointer; max-width:100%;
+  }
+  .history-item span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .history-empty{ color:var(--muted); font-size:14px; }
+
+  footer{ margin-top:28px; text-align:center; color:var(--muted); font-size:13px; line-height:1.7; }
+
+  /* ---------- จอใหญ่ ---------- */
+  @media (min-width:720px){
+    .app{ max-width:600px; padding-top:36px; }
+    h1{ font-size:32px; }
+    .img-box{ aspect-ratio:16/10; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="logo">🍽️</div>
+    <h1>วันนี้กินอะไรดี?</h1>
+    <p class="subtitle">กดปุ่มเดียว ให้เราช่วยสุ่มเมนูมื้อต่อไปของคุณ</p>
+  </header>
+
+  <p class="section-label">เลือกประเภทอาหาร</p>
+  <div class="chips" id="chips" role="tablist" aria-label="ประเภทอาหาร"></div>
+
+  <main class="card" id="card" aria-live="polite">
+    <div class="img-box">
+      <img id="dishImg" alt="" hidden>
+      <div class="emoji-fallback" id="dishEmoji">🍽️</div>
+    </div>
+    <div class="card-body">
+      <span class="badge" id="dishBadge">🎯 เริ่มต้น</span>
+      <h2 class="dish-name" id="dishName">ยังไม่ได้สุ่มเมนู</h2>
+      <p class="desc" id="dishDesc">เลือกประเภทอาหารด้านบน (หรือปล่อยไว้เป็น “ทั้งหมด”) แล้วกดปุ่ม “สุ่มเมนู” ได้เลย</p>
+    </div>
+  </main>
+
+  <div class="buttons">
+    <button class="btn btn-primary" id="btnSpin">🎲 สุ่มเมนู</button>
+    <button class="btn btn-secondary hidden" id="btnAgain">🔄 สุ่มอีกครั้ง</button>
+  </div>
+
+  <section class="history" aria-label="เมนูที่สุ่มล่าสุด">
+    <h2>ย้อนหลังเมนูที่สุ่มล่าสุด</h2>
+    <div class="history-list" id="historyList">
+      <p class="history-empty" id="historyEmpty">ยังไม่มีประวัติ — กดสุ่มเมนูเลย!</p>
+    </div>
+  </section>
+
+  <footer>
+    🍀 มีเมนูให้สุ่มทั้งหมด 25 รายการ จาก 5 ประเภท<br>
+    รูปอาหารโหลดจากอินเทอร์เน็ต — ถ้าเปิดแบบออฟไลน์ จะแสดงอิโมจิแทนให้อัตโนมัติ
+  </footer>
+</div>
+
+<noscript><p style="text-align:center;padding:16px;">กรุณาเปิดใช้งาน JavaScript เพื่อใช้ปุ่มสุ่มเมนู</p></noscript>
+
+<script>
+/* ================= ข้อมูลประเภทอาหาร ================= */
+const CATEGORIES = [
+  { id:"all",      label:"ทั้งหมด",       emoji:"🎲", color:"#E8590C" },
+  { id:"taamsang", label:"อาหารตามสั่ง",  emoji:"🍛", color:"#E8590C" },
+  { id:"noodle",   label:"เมนูเส้น",      emoji:"🍜", color:"#1971C2" },
+  { id:"isan",     label:"อาหารอีสาน",    emoji:"🌶️", color:"#C92A2A" },
+  { id:"healthy",  label:"อาหารสุขภาพ",   emoji:"🥗", color:"#2F9E44" },
+  { id:"snack",    label:"ของกินเล่น",    emoji:"🍢", color:"#9C36B5" },
+];
+
+/* ================= ข้อมูลเมนู 25 รายการ (ประเภทละ 5) ================= */
+const CDN = "https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/";
+const DISHES = [
+  /* ---- อาหารตามสั่ง ---- */
+  { id:"krapow",       cat:"taamsang", emoji:"🍛", name:"ข้าวผัดกะเพราหมูไข่ดาว",       desc:"หอมกะเพรา เผ็ดร้อน ทานคู่ไข่ดาวไข่แดงลื่น ๆ",                          img:CDN+"ee0481c53fbd.jpg", img2:CDN+"9542a3e36562.jpg" },
+  { id:"kaijeaw",      cat:"taamsang", emoji:"🍳", name:"ข้าวไข่เจียวหมูสับ",            desc:"ไข่เจียวฟูกรอบ ราดน้ำซอสหวานเค็มกำลังดี",                             img:CDN+"24fe8face4a7.jpg", img2:CDN+"9eb6026f86eb.jpg" },
+  { id:"mookrob",      cat:"taamsang", emoji:"🐷", name:"ข้าวหมูกรอบน้ำพริกลิ้นจี่",     desc:"หมูกรอบนอกนุ่มใน ทานคู่น้ำพริกรสจัดจ้าน",                              img:CDN+"b1c24a07f1aa.jpg", img2:CDN+"588b2bacd73e.jpg" },
+  { id:"prikgang",     cat:"taamsang", emoji:"🌶️", name:"ผัดพริกแกงหมู",                desc:"เผ็ดหอมพริกแกงเผา คลุกเคล้ากับหมูสไลซ์",                              img:CDN+"9e4b3bf94e52.jpg", img2:CDN+"342ab6753bd0.jpg" },
+  { id:"americanrice", cat:"taamsang", emoji:"🍅", name:"ข้าวผัดอเมริกัน",              desc:"เมนูตำนานจากร้านตามสั่ง หวานเปรี้ยวพร้อมไส้กรอกแฮม",                   img:CDN+"7dc1d2783a0c.jpg", img2:CDN+"3a4a9029486f.jpg" },
+  /* ---- เมนูเส้น ---- */
+  { id:"tomyam",       cat:"noodle",   emoji:"🍤", name:"ก๋วยเตี๋ยวต้มยำกุ้ง",           desc:"น้ำซุปเผ็ดเปรี้ยว กุ้งสดใหญ่ ชามฟุ้งหอมใบมะกรูด",                      img:CDN+"bfa41825ccfb.jpg", img2:CDN+"3f1503bed25f.jpg" },
+  { id:"bamee",        cat:"noodle",   emoji:"🍜", name:"บะหมี่เกี๊ยวหมูแดง",            desc:"บะหมี่เหนียวนุ่ม หมูแดงหวาน ซอสเข้มข้น",                              img:CDN+"1ecd76e72041.jpg", img2:CDN+"02fceffbbe02.jpg" },
+  { id:"khanomchin",   cat:"noodle",   emoji:"🦀", name:"ขนมจีนน้ำยาปู",               desc:"เส้นขนมจีนเย็นชื้น น้ำยาปูหวานมันกลมกล่อม",                           img:CDN+"f2ef0137121f.jpg", img2:CDN+"08de34c38b11.jpg" },
+  { id:"guayjub",      cat:"noodle",   emoji:"🥣", name:"ก๋วยจั๊บน้ำข้นหมู",            desc:"น้ำซุปเครื่องเทศเข้มข้น เส้นก๋วยจั๊บเหนียวหนึบ",                      img:CDN+"6b4772a15773.jpg", img2:CDN+"9fc1d7acf7c2.jpg" },
+  { id:"keemao",       cat:"noodle",   emoji:"🔥", name:"ผัดขี้เมาทะเล",               desc:"เส้นใหญ่ผัดเผ็ดแรง กับทะเลสด โรยโหระพาหอม ๆ",                        img:CDN+"43168e8abdfa.jpg", img2:CDN+"446c0dd26050.jpg" },
+  /* ---- อาหารอีสาน ---- */
+  { id:"somtam",       cat:"isan",     emoji:"🥒", name:"ส้มตำปูปลาร้า",               desc:"เปรี้ยว เผ็ด เค็ม ครบรส แบบต้นตำรับอีสานแท้",                        img:CDN+"7f396399ed55.jpg", img2:CDN+"172c0dbb805c.jpg" },
+  { id:"gaiyang",      cat:"isan",     emoji:"🍗", name:"ไก่ย่างน้ำจิ้มแจ่ว",           desc:"ไก่ย่างหอมเตาถ่าน ชุบน้ำจิ้มแจ่วรสจัด ทานคู่ข้าวเหนียว",               img:CDN+"8f3130be8ea8.jpg", img2:CDN+"7a81cdbf5197.jpg" },
+  { id:"larb",         cat:"isan",     emoji:"🥩", name:"ลาบหมู",                     desc:"หมูสับคลุกเคล้าข้าวคั่วและผักชี รสจัดจ้านแบบไทยแท้",                  img:CDN+"5356404df605.jpg", img2:CDN+"fc0adc68b14f.jpg" },
+  { id:"namtok",       cat:"isan",     emoji:"🥓", name:"น้ำตกหมู",                   desc:"หมูย่างคลุกน้ำตก เปรี้ยวเผ็ด หอมข้าวคั่ว",                            img:CDN+"8e26eebe93ab.jpg", img2:CDN+"6304f17f7b8c.jpg" },
+  { id:"jaewhon",      cat:"isan",     emoji:"🍲", name:"แจ่วฮ้อน",                   desc:"น้ำซุปใสเปรี้ยวเผ็ด อุ่นท้องได้ทั้งคืน",                              img:CDN+"937e22848b29.jpg", img2:CDN+"dd6f12e3688d.jpg" },
+  /* ---- อาหารสุขภาพ ---- */
+  { id:"salad",        cat:"healthy",  emoji:"🥗", name:"สลัดอกไก่ย่าง",               desc:"โปรตีนสูง ไขมันต่ำ พร้อมผักสดหลากสี",                                img:CDN+"0d42b590ef67.jpg", img2:CDN+"5787f2e7ec6f.jpg" },
+  { id:"steamfish",    cat:"healthy",  emoji:"🐟", name:"ปลากะพงนึ่งมะนาว",            desc:"ปลานุ่มฉ่ำ รสเปรี้ยวเผ็ดซ่า แคลอรีต่ำ",                               img:CDN+"b6ce1fbee758.jpg", img2:CDN+"efd108e1f715.jpg" },
+  { id:"clearsoup",    cat:"healthy",  emoji:"🥘", name:"แกงจืดเต้าหู้หมูสับ",         desc:"ซุปใส ๆ อุ่น ๆ ย่อยง่าย ทุกวัยทานได้",                                img:CDN+"9245ff4a3daa.jpg", img2:CDN+"6c6ee78a18d3.jpg" },
+  { id:"woonsen",      cat:"healthy",  emoji:"🍤", name:"ยำวุ้นเส้นกุ้ง",              desc:"วุ้นเส้นเหนียวหนึบ ยำเผ็ดเปรี้ยวสดชื่น",                             img:CDN+"9eb2ee8c58fd.jpg", img2:CDN+"a99b7830c93f.jpg" },
+  { id:"yogurt",       cat:"healthy",  emoji:"🍓", name:"โยเกิร์ตผลไม้กราโนล่า",       desc:"มื้อเบาหวานหวานจากผลไม้ธรรมชาติ เติมพลังยามเช้า",                     img:CDN+"b590714ad5b6.jpg", img2:CDN+"6eaf2baaa591.jpg" },
+  /* ---- ของกินเล่น ---- */
+  { id:"mooping",      cat:"snack",    emoji:"🍢", name:"หมูปิ้ง",                    desc:"หมูหมักนุ่มหวาน ย่างหอม ขาคู่กับข้าวเหนียวมะลิ",                      img:CDN+"e34988836af1.jpg", img2:CDN+"1683fc80cce6.jpg" },
+  { id:"khanomkrok",   cat:"snack",    emoji:"🥮", name:"ขนมครกกะทิ",                 desc:"ครึ่งเค็มครึ่งหวาน กรอบนอกนุ่มใน",                                    img:CDN+"ced1aa04b85d.jpg", img2:CDN+"f628e733c7d9.jpg" },
+  { id:"gaitod",       cat:"snack",    emoji:"🍗", name:"ไก่ทอดกรอบ",                 desc:"แป้งบางกรอบ เครื่องปรุงซึมลึก กัดหนึ่งคำติดใจ",                        img:CDN+"28d83359c7e4.jpg", img2:CDN+"6b73de65a7ec.jpg" },
+  { id:"todmun",       cat:"snack",    emoji:"🐟", name:"ทอดมันปลา",                  desc:"หอมตะไคร้ใบมะกรูด จิ้มน้ำจิ้มยิ่งอร่อย",                              img:CDN+"baf759042e41.jpg", img2:CDN+"a9ee0958d25c.jpg" },
+  { id:"kluaytod",     cat:"snack",    emoji:"🍌", name:"กล้วยทอด",                   desc:"กล้วยสุกหวาน แป้งกรอบ โรยงาหอม ๆ",                                   img:CDN+"8a2a60c090f5.jpg", img2:CDN+"e044a855a9cc.jpg" },
+];
+
+/* ================= อ้างอิงองค์ประกอบ ================= */
+const el = {
+  chips:      document.getElementById("chips"),
+  card:       document.getElementById("card"),
+  img:        document.getElementById("dishImg"),
+  emoji:      document.getElementById("dishEmoji"),
+  badge:      document.getElementById("dishBadge"),
+  name:       document.getElementById("dishName"),
+  desc:       document.getElementById("dishDesc"),
+  btnSpin:    document.getElementById("btnSpin"),
+  btnAgain:   document.getElementById("btnAgain"),
+  history:    document.getElementById("historyList"),
+  historyEmpty: document.getElementById("historyEmpty"),
+};
+
+/* ================= สถานะ ================= */
+let selectedCat = "all";
+let lastId = null;
+let spinning = false;
+let history = [];   // เก็บรายการล่าสุดไว้สูงสุด 6 รายการ
+
+/* ================= ฟังก์ชันช่วย ================= */
+const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const getPool = () => selectedCat === "all" ? DISHES : DISHES.filter(d => d.cat === selectedCat);
+const randomFrom = pool => pool[Math.floor(Math.random() * pool.length)];
+
+function pickFrom(pool, excludeId){
+  if (pool.length === 1) return pool[0];
+  const candidates = pool.filter(d => d.id !== excludeId);
+  return randomFrom(candidates.length ? candidates : pool);
+}
+const catOf = dish => CATEGORIES.find(c => c.id === dish.cat);
+
+/* ================= แสดงเมนูในการ์ด ================= */
+function showDish(dish){
+  // รูป: ลองรูปหลัก → รูปสำรอง → อิโมจิ (สำหรับตอนออฟไลน์)
+  el.img.hidden = false;
+  el.emoji.classList.add("hidden");
+  el.img.dataset.stage = "0";
+  el.img.alt = "รูปอาหาร: " + dish.name;
+  el.img.onerror = () => {
+    if (el.img.dataset.stage === "0") { el.img.dataset.stage = "1"; el.img.src = dish.img2; }
+    else { el.img.hidden = true; el.emoji.textContent = dish.emoji; el.emoji.classList.remove("hidden"); }
+  };
+  el.img.src = dish.img;
+
+  const cat = catOf(dish);
+  el.badge.textContent = cat.emoji + " " + cat.label;
+  el.badge.style.background = cat.color + "1A";   // สีพื้นจาง ๆ ของประเภท
+  el.badge.style.color = cat.color;
+  el.name.textContent = dish.name;
+  el.desc.textContent = dish.desc;
+}
+
+/* ================= ประวัติการสุ่ม ================= */
+function addToHistory(dish){
+  history = history.filter(d => d.id !== dish.id);  // กันช้ำ
+  history.unshift(dish);
+  history = history.slice(0, 6);
+  renderHistory();
+}
+function renderHistory(){
+  el.historyEmpty && el.historyEmpty.remove();
+  el.history.innerHTML = "";
+  history.forEach(dish => {
+    const b = document.createElement("button");
+    b.className = "history-item";
+    b.type = "button";
+    b.title = "ดูเมนูนี้อีกครั้ง: " + dish.name;
+    const em = document.createElement("span"); em.textContent = dish.emoji;
+    const tx = document.createElement("span"); tx.textContent = dish.name;
+    b.append(em, tx);
+    b.addEventListener("click", () => showDish(dish));
+    el.history.appendChild(b);
+  });
+}
+
+/* ================= สุ่มเมนู (พร้อมอนิเมชัน) ================= */
+function spin(){
+  if (spinning) return;
+  const pool = getPool();
+  if (!pool.length) return;
+
+  spinning = true;
+  el.btnSpin.disabled = el.btnAgain.disabled = true;
+  el.card.classList.add("spinning");
+
+  const finalDish = pickFrom(pool, lastId);   // ไม่สุ่มซ้ำเมนูเดิมติดกัน
+  const finish = () => {
+    showDish(finalDish);
+    lastId = finalDish.id;
+    addToHistory(finalDish);
+    el.btnAgain.classList.remove("hidden");
+    if (!el.btnAgain.classList.contains("pop-in")) el.btnAgain.classList.add("pop-in");
+    document.querySelector(".buttons").classList.add("both");
+    el.card.classList.remove("spinning");
+    spinning = false;
+    el.btnSpin.disabled = el.btnAgain.disabled = false;
+  };
+
+  if (reduceMotion()) { finish(); return; }
+
+  let step = 0;
+  (function tick(){
+    if (step++ < 11) {
+      showDish(randomFrom(pool));          // สลับภาพ/ชื่อเร็ว ๆ เหมือนรูเล็ตต์
+      setTimeout(tick, 55 + step * 16);    // ช้าลงเรื่อย ๆ แล้วจบที่เมนูจริง
+    } else {
+      finish();
+    }
+  })();
+}
+
+/* ================= สร้างชิปประเภทอาหาร ================= */
+CATEGORIES.forEach(cat => {
+  const chip = document.createElement("button");
+  chip.className = "chip";
+  chip.type = "button";
+  chip.role = "tab";
+  chip.dataset.cat = cat.id;
+  chip.textContent = cat.emoji + " " + cat.label;
+  chip.setAttribute("aria-selected", String(cat.id === selectedCat));
+  chip.addEventListener("click", () => {
+    selectedCat = cat.id;
+    document.querySelectorAll(".chip").forEach(c =>
+      c.setAttribute("aria-selected", String(c.dataset.cat === selectedCat)));
+  });
+  el.chips.appendChild(chip);
+});
+
+/* ================= ผูกปุ่ม ================= */
+el.btnSpin.addEventListener("click", spin);
+el.btnAgain.addEventListener("click", spin);   // สุ่มอีกครั้ง = สุ่มใหม่ในประเภทเดิม
+
+/* โหลดรูปล่วงหน้าแบบค่อยเป็นค่อยไป ให้ตอนสุ่มภาพขึ้นไว */
+window.addEventListener("load", () => {
+  DISHES.forEach((d, i) => setTimeout(() => { const im = new Image(); im.src = d.img; }, i * 250));
+});
+</script>
+</body>
+</html>
